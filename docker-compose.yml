@@ -1,0 +1,63 @@
+version: "3.6"
+
+services:
+  koel:
+    image: hyzual/koel:latest
+    restart: always
+    depends_on:
+      - database
+    ports:
+      - "80:80"
+    networks:
+      - koel_net
+    volumes:
+      - type: bind
+        source: ./env
+        target: /var/www/html/.env
+      - type: volume
+        source: koel_music
+        target: /music
+        volume:
+          nocopy: true
+      - type: volume
+        source: koel_covers
+        target: /var/www/html/public/img/covers
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: database
+      DB_DATABASE: koel
+      DB_USERNAME: koel
+      DB_PASSWORD: <koel_password>
+  database:
+    image: mariadb:10.3.23
+    restart: always
+    networks:
+      - koel_net
+    volumes:
+      - type: volume
+        source: koel_db
+        target: /var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: <root_password>
+      MYSQL_DATABASE: koel
+      MYSQL_USER: koel
+      MYSQL_PASSWORD: <koel_password>
+  adminer:
+    image: adminer:4.7.1
+    restart: always
+    networks:
+      - koel_net
+    ports:
+      - "8080:8080"
+
+networks:
+  koel_net:
+    driver: bridge
+
+volumes:
+  koel_music:
+    driver: local
+  koel_covers:
+    driver: local
+  koel_db:
+    driver: local
